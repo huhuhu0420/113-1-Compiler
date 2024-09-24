@@ -111,6 +111,8 @@ let () =
   try
     Printf.printf "nth 4: %s\n" (string_of_seq (nth s 4));
   with
-  | Failure e -> Printf.printf "index out of range\n";
-  Printf.printf "nth 0: %s\n" (string_of_seq (nth s 0));
-  Printf.printf "nth 2: %s\n" (string_of_seq (nth s 2));
+  | Failure e -> Printf.printf "index out of range %s\n" e;
+  try
+    Printf.printf "nth 2: %s\n" (string_of_seq (nth s 2));
+  with
+  | Failure e -> Printf.printf "index out of range %s\n" e;
