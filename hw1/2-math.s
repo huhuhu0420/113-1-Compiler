@@ -49,11 +49,15 @@ forth:
     pushq %rbp
     movq %rsp, %rbp
 
-    movq $10, %rax
-    movq $5, %rbx
-    idiv %rbx
+    # 10 / 5
+    movq $10, %rax # dividend
+    xor %rdx, %rdx
+    movq $5, %rbx # divisor
+    div %rbx
     imul $6, %rax
-    sub $3, %rax
+    movq $3, %rbx
+    sub %rax, %rbx
+    movq %rbx, %rax
 
     popq %rbp
     ret
