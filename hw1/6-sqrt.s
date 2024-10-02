@@ -7,25 +7,25 @@ msg: .string "sqrt(%2d) = %2d\n"
 isqrt:
     pushq %rbp
     movq %rsp, %rbp
-    subq $16, %rsp
+    subq $24, %rsp
     movq $0, -8(%rbp) # c = 0
     movq $1, -16(%rbp) # s = 1
+    movq $1, -24(%rbp) # inc = 1
 
 loop:
     movq -16(%rbp), %rax
     cmpq %rdi, %rax
-    jge end
+    jg end
 
-    addq $1, -8(%rbp)
-    movq -8(%rbp), %rax
-    imul $2, %rax
-    addq $1, %rax
-    addq %rax, -16(%rbp)
+    addq $1, -8(%rbp) # c++
+    addq $2, -24(%rbp) # inc += 2
+    movq -24(%rbp), %rax
+    addq %rax, -16(%rbp) # s += inc
     jmp loop
 
 end:
     movq -8(%rbp), %rax
-    addq $16, %rsp
+    addq $24, %rsp
     popq %rbp
     ret
 
@@ -37,7 +37,7 @@ main:
 
 loop_main:
     movq -8(%rbp), %rax 
-    cmpq $20, %rax # n < 20
+    cmpq $21, %rax # n < 21
     jge end_main
     movq %rax, %rdi 
     call isqrt
