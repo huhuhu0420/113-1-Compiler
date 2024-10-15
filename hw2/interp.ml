@@ -71,17 +71,22 @@ let rec expr ctx = function
       Vstring s
   (* arithmetic *)
   | Ecst (Cint n) ->
-      assert false (* TODO (question 1) *)
+      Vint (Int64.to_int n)
   | Ebinop (Badd | Bsub | Bmul | Bdiv | Bmod |
             Beq | Bneq | Blt | Ble | Bgt | Bge as op, e1, e2) ->
       let v1 = expr ctx e1 in
       let v2 = expr ctx e2 in
       begin match op, v1, v2 with
-        | Badd, Vint n1, Vint n2 -> assert false (* TODO (question 1) *)
-        | Bsub, Vint n1, Vint n2 -> assert false (* TODO (question 1) *)
-        | Bmul, Vint n1, Vint n2 -> assert false (* TODO (question 1) *)
-        | Bdiv, Vint n1, Vint n2 -> assert false (* TODO (question 1) *)
-        | Bmod, Vint n1, Vint n2 -> assert false (* TODO (question 1) *)
+        | Badd, Vint n1, Vint n2 -> 
+            Vint (n1 + n2)
+        | Bsub, Vint n1, Vint n2 -> 
+            Vint (n1 - n2)
+        | Bmul, Vint n1, Vint n2 -> 
+            Vint (n1 * n2)
+        | Bdiv, Vint n1, Vint n2 -> 
+            if n2 = 0 then error "division by zero" else Vint (n1 / n2)
+        | Bmod, Vint n1, Vint n2 -> 
+            if n2 = 0 then error "division by zero" else Vint (n1 mod n2)
         | Beq, _, _  -> assert false (* TODO (question 2) *)
         | Bneq, _, _ -> assert false (* TODO (question 2) *)
         | Blt, _, _  -> assert false (* TODO (question 2) *)
@@ -95,7 +100,11 @@ let rec expr ctx = function
         | _ -> error "unsupported operand types"
       end
   | Eunop (Uneg, e1) ->
-      assert false (* TODO (question 1) *)
+        let v1 = expr ctx e1 in
+        begin match v1 with
+          | Vint n -> Vint (-n)
+          | _ -> error "unsupported operand type"
+        end
   (* Boolean *)
   | Ecst (Cbool b) ->
       assert false (* TODO (question 2) *)

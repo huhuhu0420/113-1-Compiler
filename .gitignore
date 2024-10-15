@@ -33,3 +33,6 @@ _opam/
 
 # zip
 *.zip
+
+# exec
+*.exe
