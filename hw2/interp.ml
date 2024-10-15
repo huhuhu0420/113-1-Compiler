@@ -44,9 +44,18 @@ let rec print_value = function
    the empty string, and the empty list are all considered to be
    False, and any other value to be True.
 *)
-let is_false v = assert false (* TODO (question 2) *)
+let is_false v = 
+    match v with
+    | Vnone -> true
+    | Vbool false -> true
+    | Vstring "" -> true
+    | Vlist [||] -> true
+    | Vint n -> n = 0
+    | _ -> false
 
-let is_true v = assert false (* TODO (question 2) *)
+let is_true v = 
+    let b = is_false v in
+    not b
 
 (* We only have global functions in Mini-Python *)
 
@@ -87,12 +96,18 @@ let rec expr ctx = function
             if n2 = 0 then error "division by zero" else Vint (n1 / n2)
         | Bmod, Vint n1, Vint n2 -> 
             if n2 = 0 then error "division by zero" else Vint (n1 mod n2)
-        | Beq, _, _  -> assert false (* TODO (question 2) *)
-        | Bneq, _, _ -> assert false (* TODO (question 2) *)
-        | Blt, _, _  -> assert false (* TODO (question 2) *)
-        | Ble, _, _  -> assert false (* TODO (question 2) *)
-        | Bgt, _, _  -> assert false (* TODO (question 2) *)
-        | Bge, _, _  -> assert false (* TODO (question 2) *)
+        | Beq, _, _  -> 
+            Vbool (v1 = v2)
+        | Bneq, _, _ -> 
+            Vbool (v1 <> v2)
+        | Blt, _, _  -> 
+            Vbool (v1 < v2)
+        | Ble, _, _  -> 
+            Vbool (v1 <= v2)
+        | Bgt, _, _  -> 
+            Vbool (v1 > v2)
+        | Bge, _, _  ->
+            Vbool (v1 >= v2)
         | Badd, Vstring s1, Vstring s2 ->
             assert false (* TODO (question 3) *)
         | Badd, Vlist l1, Vlist l2 ->
@@ -107,13 +122,16 @@ let rec expr ctx = function
         end
   (* Boolean *)
   | Ecst (Cbool b) ->
-      assert false (* TODO (question 2) *)
+      Vbool b
   | Ebinop (Band, e1, e2) ->
-      assert false (* TODO (question 2) *)
+      let v1 = expr ctx e1 in
+        if is_false v1 then v1 else expr ctx e2
   | Ebinop (Bor, e1, e2) ->
-      assert false (* TODO (question 2) *)
+      let v1 = expr ctx e1 in
+        if is_true v1 then v1 else expr ctx e2
   | Eunop (Unot, e1) ->
-      assert false (* TODO (question 2) *)
+      let v1 = expr ctx e1 in
+        Vbool (is_false v1)
   | Eident {id} ->
       assert false (* TODO (question 3) *)
   (* function call *)
@@ -140,7 +158,8 @@ and stmt ctx = function
   | Sblock bl ->
       block ctx bl
   | Sif (e, s1, s2) ->
-      assert false (* TODO (question 2) *)
+      let v = expr ctx e in
+        if is_true v then stmt ctx s1 else stmt ctx s2
   | Sassign ({id}, e1) ->
       assert false (* TODO (question 3) *)
   | Sreturn e ->
