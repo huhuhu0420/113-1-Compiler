@@ -74,100 +74,104 @@ type ctx = (string, value) Hashtbl.t
 (* Interpreting an expression (returns a value) *)
 
 let rec expr ctx = function
-  | Ecst Cnone ->
-      Vnone
-  | Ecst (Cstring s) ->
-      Vstring s
-  (* arithmetic *)
-  | Ecst (Cint n) ->
-      Vint (Int64.to_int n)
-  | Ebinop (Badd | Bsub | Bmul | Bdiv | Bmod |
-            Beq | Bneq | Blt | Ble | Bgt | Bge as op, e1, e2) ->
-      let v1 = expr ctx e1 in
-      let v2 = expr ctx e2 in
-      begin match op, v1, v2 with
-        | Badd, Vint n1, Vint n2 -> 
-            Vint (n1 + n2)
-        | Bsub, Vint n1, Vint n2 -> 
-            Vint (n1 - n2)
-        | Bmul, Vint n1, Vint n2 -> 
-            Vint (n1 * n2)
-        | Bdiv, Vint n1, Vint n2 -> 
-            if n2 = 0 then error "division by zero" else Vint (n1 / n2)
-        | Bmod, Vint n1, Vint n2 -> 
-            if n2 = 0 then error "division by zero" else Vint (n1 mod n2)
-        | Beq, _, _  -> 
-            Vbool (v1 = v2)
-        | Bneq, _, _ -> 
-            Vbool (v1 <> v2)
-        | Blt, _, _  -> 
-            Vbool (v1 < v2)
-        | Ble, _, _  -> 
-            Vbool (v1 <= v2)
-        | Bgt, _, _  -> 
-            Vbool (v1 > v2)
-        | Bge, _, _  ->
-            Vbool (v1 >= v2)
-        | Badd, Vstring s1, Vstring s2 ->
-            Vstring (s1 ^ s2)
-        | Badd, Vlist l1, Vlist l2 ->
-            assert false (* TODO (question 5) *)
-        | _ -> error "unsupported operand types"
-      end
-  | Eunop (Uneg, e1) ->
+    | Ecst Cnone ->
+        Vnone
+    | Ecst (Cstring s) ->
+        Vstring s
+    (* arithmetic *)
+    | Ecst (Cint n) ->
+        Vint (Int64.to_int n)
+    | Ebinop (Badd | Bsub | Bmul | Bdiv | Bmod |
+                Beq | Bneq | Blt | Ble | Bgt | Bge as op, e1, e2) ->
+        let v1 = expr ctx e1 in
+        let v2 = expr ctx e2 in
+        begin match op, v1, v2 with
+            | Badd, Vint n1, Vint n2 -> 
+                Vint (n1 + n2)
+            | Bsub, Vint n1, Vint n2 -> 
+                Vint (n1 - n2)
+            | Bmul, Vint n1, Vint n2 -> 
+                Vint (n1 * n2)
+            | Bdiv, Vint n1, Vint n2 -> 
+                if n2 = 0 then error "division by zero" else Vint (n1 / n2)
+            | Bmod, Vint n1, Vint n2 -> 
+                if n2 = 0 then error "division by zero" else Vint (n1 mod n2)
+            | Beq, _, _  -> 
+                Vbool (v1 = v2)
+            | Bneq, _, _ -> 
+                Vbool (v1 <> v2)
+            | Blt, _, _  -> 
+                Vbool (v1 < v2)
+            | Ble, _, _  -> 
+                Vbool (v1 <= v2)
+            | Bgt, _, _  -> 
+                Vbool (v1 > v2)
+            | Bge, _, _  ->
+                Vbool (v1 >= v2)
+            | Badd, Vstring s1, Vstring s2 ->
+                Vstring (s1 ^ s2)
+            | Badd, Vlist l1, Vlist l2 ->
+                assert false (* TODO (question 5) *)
+            | _ -> error "unsupported operand types"
+        end
+    | Eunop (Uneg, e1) ->
         let v1 = expr ctx e1 in
         begin match v1 with
-          | Vint n -> Vint (-n)
-          | _ -> error "unsupported operand type"
+            | Vint n -> Vint (-n)
+            | _ -> error "unsupported operand type"
         end
-  (* Boolean *)
-  | Ecst (Cbool b) ->
-      Vbool b
-  | Ebinop (Band, e1, e2) ->
-      let v1 = expr ctx e1 in
-        if is_false v1 then v1 else expr ctx e2
-  | Ebinop (Bor, e1, e2) ->
-      let v1 = expr ctx e1 in
-        if is_true v1 then v1 else expr ctx e2
-  | Eunop (Unot, e1) ->
-      let v1 = expr ctx e1 in
-        Vbool (is_false v1)
-  | Eident {id} ->
-      Hashtbl.find ctx id
-  (* function call *)
-  | Ecall ({id="len"}, [e1]) ->
-      assert false (* TODO (question 5) *)
-  | Ecall ({id="list"}, [Ecall ({id="range"}, [e1])]) ->
-      assert false (* TODO (question 5) *)
-  | Ecall ({id=f}, el) ->
-      assert false (* TODO (question 4) *)
-  | Elist el ->
-      assert false (* TODO (question 5) *)
-  | Eget (e1, e2) ->
-      assert false (* TODO (question 5) *)
+    (* Boolean *)
+    | Ecst (Cbool b) ->
+        Vbool b
+    | Ebinop (Band, e1, e2) ->
+        let v1 = expr ctx e1 in
+            if is_false v1 then v1 else expr ctx e2
+    | Ebinop (Bor, e1, e2) ->
+        let v1 = expr ctx e1 in
+            if is_true v1 then v1 else expr ctx e2
+    | Eunop (Unot, e1) ->
+        let v1 = expr ctx e1 in
+            Vbool (is_false v1)
+    | Eident {id} ->
+        Hashtbl.find ctx id
+    (* function call *)
+    | Ecall ({id="len"}, [e1]) ->
+        assert false (* TODO (question 5) *)
+    | Ecall ({id="list"}, [Ecall ({id="range"}, [e1])]) ->
+        assert false (* TODO (question 5) *)
+    | Ecall ({id=f}, el) ->
+        let (pl, s) = Hashtbl.find functions f in
+        let ctx' = Hashtbl.create 16 in
+        List.iter2 (fun {id} v -> Hashtbl.add ctx' id (expr ctx v)) pl el;
+        begin try stmt ctx' s; Vnone with Return v -> v end
+    | Elist el ->
+        assert false (* TODO (question 5) *)
+    | Eget (e1, e2) ->
+        assert false (* TODO (question 5) *)
 
 (* Interpreting a statement
 
    returns nothing but may raise exception `Return` *)
 
 and stmt ctx = function
-  | Seval e ->
-      ignore (expr ctx e)
-  | Sprint e ->
-      print_value (expr ctx e); printf "@."
-  | Sblock bl ->
-      block ctx bl
-  | Sif (e, s1, s2) ->
-      let v = expr ctx e in
-        if is_true v then stmt ctx s1 else stmt ctx s2
-  | Sassign ({id}, e1) ->
-      Hashtbl.replace ctx id (expr ctx e1)
-  | Sreturn e ->
-      assert false (* TODO (question 4) *)
-  | Sfor ({id}, e, s) ->
-      assert false (* TODO (question 5) *)
-  | Sset (e1, e2, e3) ->
-      assert false (* TODO (question 5) *)
+    | Seval e ->
+        ignore (expr ctx e)
+    | Sprint e ->
+        print_value (expr ctx e); printf "@."
+    | Sblock bl ->
+        block ctx bl
+    | Sif (e, s1, s2) ->
+        let v = expr ctx e in
+            if is_true v then stmt ctx s1 else stmt ctx s2
+    | Sassign ({id}, e1) ->
+        Hashtbl.replace ctx id (expr ctx e1)
+    | Sreturn e ->
+        let v = expr ctx e in
+            raise (Return v)
+    | Sfor ({id}, e, s) ->
+        assert false (* TODO (question 5) *)
+    | Sset (e1, e2, e3) ->
+        assert false (* TODO (question 5) *)
 
 (* Interpreting a block (a sequence of statements) *)
 
@@ -181,5 +185,7 @@ and block ctx = function
 *)
 
 let file (dl, s) =
-  (* TODO (question 4) *)
-  stmt (Hashtbl.create 16) s
+    let ctx = Hashtbl.create 16 in
+    List.iter (fun (f, pl, s) -> Hashtbl.add functions f.id (pl, s)) dl;
+    stmt ctx s
+

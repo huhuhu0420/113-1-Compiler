@@ -10,6 +10,7 @@ if False or True:
     print("ok")
 else:
     print("oups")
+
 # ex3
 x = 41
 x = x+1
@@ -18,3 +19,9 @@ b = True and False
 print(b)
 s = "hello" + " world!"
 print(s)
+
+#ex4
+def fact(n):
+    if n <= 1: return 1
+    return n * fact(n-1)
+print(fact(10))
