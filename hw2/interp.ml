@@ -73,6 +73,21 @@ type ctx = (string, value) Hashtbl.t
 
 (* Interpreting an expression (returns a value) *)
 
+let string_of_binop = function
+    | Badd -> "Badd"
+    | Bsub -> "Bsub"
+    | Bmul -> "Bmul"
+    | Bdiv -> "Bdiv"
+    | Bmod -> "Bmod"
+    | Beq -> "Beq"
+    | Bneq -> "Bneq"
+    | Blt -> "Blt"
+    | Ble -> "Ble"
+    | Bgt -> "Bgt"
+    | Bge -> "Bge"
+    | Band -> "Band"
+    | Bor -> "Bor"
+
 let rec expr ctx = function
     | Ecst Cnone ->
         Vnone
@@ -111,8 +126,9 @@ let rec expr ctx = function
             | Badd, Vstring s1, Vstring s2 ->
                 Vstring (s1 ^ s2)
             | Badd, Vlist l1, Vlist l2 ->
-                assert false (* TODO (question 5) *)
-            | _ -> error "unsupported operand types"
+                Vlist (Array.append l1 l2)
+            | _ -> 
+                error "unsupported operand types"
         end
     | Eunop (Uneg, e1) ->
         let v1 = expr ctx e1 in
@@ -136,18 +152,33 @@ let rec expr ctx = function
         Hashtbl.find ctx id
     (* function call *)
     | Ecall ({id="len"}, [e1]) ->
-        assert false (* TODO (question 5) *)
+        let v1 = expr ctx e1 in
+        begin match v1 with
+            | Vstring s -> Vint (String.length s)
+            | Vlist l -> Vint (Array.length l)
+            | _ -> error "unsupported type"
+        end
     | Ecall ({id="list"}, [Ecall ({id="range"}, [e1])]) ->
-        assert false (* TODO (question 5) *)
+        let n = expr ctx e1 in
+        begin match n with
+            | Vint vn -> Vlist (Array.init (max 0 vn) (fun i -> Vint i))
+            | _ -> error "unsupported type"
+        end 
     | Ecall ({id=f}, el) ->
         let (pl, s) = Hashtbl.find functions f in
         let ctx' = Hashtbl.create 16 in
         List.iter2 (fun {id} v -> Hashtbl.add ctx' id (expr ctx v)) pl el;
         begin try stmt ctx' s; Vnone with Return v -> v end
     | Elist el ->
-        assert false (* TODO (question 5) *)
+        Vlist (Array.of_list (List.map (expr ctx) el))
     | Eget (e1, e2) ->
-        assert false (* TODO (question 5) *)
+        let v1 = expr ctx e1 in
+        let v2 = expr ctx e2 in
+        begin match v1, v2 with
+            | Vlist l, Vint i -> 
+                if i < 0 || i >= Array.length l then error "index out of bounds" else l.(i)
+            | _, _ -> error "unsupported type"
+        end
 
 (* Interpreting a statement
 
@@ -169,9 +200,20 @@ and stmt ctx = function
         let v = expr ctx e in
             raise (Return v)
     | Sfor ({id}, e, s) ->
-        assert false (* TODO (question 5) *)
+        let v = expr ctx e in
+        begin match v with
+        | Vlist lst -> 
+            Array.iter (fun v -> Hashtbl.replace ctx id v;
+            stmt ctx s) lst;
+        | _ -> error "list expected" end
     | Sset (e1, e2, e3) ->
-        assert false (* TODO (question 5) *)
+        let v1 = expr ctx e1 in
+        let v2 = expr ctx e2 in
+        let v3 = expr ctx e3 in
+        begin match v1, v2 with 
+            | Vlist v, Vint e -> v.(e) <- v3
+            | _, _ -> error "unsupported type" 
+        end
 
 (* Interpreting a block (a sequence of statements) *)
 
