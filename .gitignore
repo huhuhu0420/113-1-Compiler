@@ -36,3 +36,6 @@ _opam/
 
 # exec
 *.exe
+
+# output
+out
