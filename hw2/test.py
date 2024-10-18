@@ -40,3 +40,8 @@ b = True and False
 print(b)
 s = "hello" + " world!"
 print(s)
+
+#ex7
+print([3,2,1] > [1,2,3])
+print([3,4] > [5])
+print([1,2,3] < [1,2,4,5])

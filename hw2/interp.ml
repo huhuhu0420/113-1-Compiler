@@ -71,8 +71,7 @@ exception Return of value
 
 type ctx = (string, value) Hashtbl.t
 
-(* Interpreting an expression (returns a value) *)
-
+(* String representation of a binary operator *)
 let string_of_binop = function
     | Badd -> "Badd"
     | Bsub -> "Bsub"
@@ -87,6 +86,28 @@ let string_of_binop = function
     | Bge -> "Bge"
     | Band -> "Band"
     | Bor -> "Bor"
+
+let int_of_bool = function
+    | true -> 1
+    | false -> -1
+
+let rec compare_value (v1: value) (v2: value) : (int) = 
+    begin match v1, v2 with
+        | Vlist vlst1, Vlist vlst2 -> 
+            let rec compare_list (vlst1) (vlst2) = 
+                match vlst1, vlst2 with
+                | [], [] -> 0
+                | [], _ -> -1
+                | _, [] -> 1
+                | h1::t1, h2::t2 -> 
+                    let cmp = compare_value h1 h2 in
+                    if cmp = 0 then compare_list t1 t2 else cmp
+            in 
+            compare_list (Array.to_list vlst1) (Array.to_list vlst2);
+        | _, _ -> compare v1 v2
+    end
+    
+(* Interpreting an expression (returns a value) *)
 
 let rec expr ctx = function
     | Ecst Cnone ->
@@ -112,17 +133,17 @@ let rec expr ctx = function
             | Bmod, Vint n1, Vint n2 -> 
                 if n2 = 0 then error "division by zero" else Vint (n1 mod n2)
             | Beq, _, _  -> 
-                Vbool (v1 = v2)
+                Vbool (compare_value v1 v2 = 0)
             | Bneq, _, _ -> 
-                Vbool (v1 <> v2)
+                Vbool (compare_value v1 v2 <> 0)
             | Blt, _, _  -> 
-                Vbool (v1 < v2)
+                Vbool (compare_value v1 v2 < 0)
             | Ble, _, _  -> 
-                Vbool (v1 <= v2)
+                Vbool (compare_value v1 v2 <= 0)
             | Bgt, _, _  -> 
-                Vbool (v1 > v2)
+                Vbool (compare_value v1 v2 > 0)
             | Bge, _, _  ->
-                Vbool (v1 >= v2)
+                Vbool (compare_value v1 v2 >= 0)
             | Badd, Vstring s1, Vstring s2 ->
                 Vstring (s1 ^ s2)
             | Badd, Vlist l1, Vlist l2 ->
