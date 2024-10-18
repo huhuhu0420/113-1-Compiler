@@ -1,3 +1,9 @@
+#ex4
+def fact(n):
+    if n <= 1: return 1
+    return n * fact(n-1)
+print(fact(10))
+
 # ex1
 print(1 + 2*3)
 print((3*3 + 4*4) // 5)
@@ -19,9 +25,3 @@ b = True and False
 print(b)
 s = "hello" + " world!"
 print(s)
-
-#ex4
-def fact(n):
-    if n <= 1: return 1
-    return n * fact(n-1)
-print(fact(10))
