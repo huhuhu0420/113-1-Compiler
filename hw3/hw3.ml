@@ -48,7 +48,7 @@ let follow (c: ichar) (r: regexp) : Cset.t =
     | Character ch -> Cset.empty 
     | Union (r1, r2) -> Cset.union (follow_rec r1) (follow_rec r2)
     | Concat (r1, r2) -> 
-      if Cset.mem c (last r1) then Cset.union (first r2) (follow_rec r1) else follow_rec r2
+      if Cset.mem c (last r1) then Cset.union (first r2) (follow_rec r1) else Cset.union (follow_rec r1) (follow_rec r2)
     | Star r -> 
       if Cset.mem c (last r) then Cset.union (first r) (follow_rec r) else follow_rec r
   in
