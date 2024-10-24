@@ -41,6 +41,19 @@ let last (r: regexp) : Cset.t =
   in
   last_rec r
 
+let follow (c: ichar) (r: regexp) : Cset.t = 
+  let rec follow_rec r = 
+    match r with
+    | Epsilon -> Cset.empty
+    | Character ch -> Cset.empty 
+    | Union (r1, r2) -> Cset.union (follow_rec r1) (follow_rec r2)
+    | Concat (r1, r2) -> 
+      if Cset.mem c (last r1) then Cset.union (first r2) (follow_rec r1) else follow_rec r2
+    | Star r -> 
+      if Cset.mem c (last r) then Cset.union (first r) (follow_rec r) else follow_rec r
+  in
+  follow_rec r
+
 let () =
   (* ex1 *)
   let a = Character ('a', 0) in
@@ -61,4 +74,17 @@ let () =
   assert (eq (last ab) (Cset.singleton cb));
   assert (Cset.cardinal (first (Union (a, b))) = 2);
   assert (Cset.cardinal (first (Concat (Star a, b))) = 2);
-  assert (Cset.cardinal (last (Concat (a, Star b))) = 2)
+  assert (Cset.cardinal (last (Concat (a, Star b))) = 2);
+  (* ex3 *)
+  let ca = ('a', 0) and cb = ('b', 0) in
+  let a = Character ca and b = Character cb in
+  let ab = Concat (a, b) in
+  assert (Cset.equal (follow ca ab) (Cset.singleton cb));
+  assert (Cset.is_empty (follow cb ab));
+  let r = Star (Union (a, b)) in
+  assert (Cset.cardinal (follow ca r) = 2);
+  assert (Cset.cardinal (follow cb r) = 2);
+  let r2 = Star (Concat (a, Star b)) in
+  assert (Cset.cardinal (follow cb r2) = 2);
+  let r3 = Concat (Star a, b) in
+  assert (Cset.cardinal (follow ca r3) = 2);
