@@ -48,9 +48,13 @@ let follow (c: ichar) (r: regexp) : Cset.t =
     | Character ch -> Cset.empty 
     | Union (r1, r2) -> Cset.union (follow_rec r1) (follow_rec r2)
     | Concat (r1, r2) -> 
-      if Cset.mem c (last r1) then Cset.union (first r2) (follow_rec r1) else Cset.union (follow_rec r1) (follow_rec r2)
+      if Cset.mem c (last r1) 
+        then Cset.union (Cset.union (follow_rec r2) (follow_rec r1)) (first r2) 
+        else Cset.union (follow_rec r1) (follow_rec r2)
     | Star r -> 
-      if Cset.mem c (last r) then Cset.union (first r) (follow_rec r) else follow_rec r
+      if Cset.mem c (last r) 
+        then Cset.union (first r) (follow_rec r) 
+        else follow_rec r
   in
   follow_rec r
 
@@ -62,6 +66,7 @@ let () =
   assert (null (Concat (Epsilon, Star Epsilon)));
   assert (null (Union (Epsilon, a)));
   assert (not (null (Concat (a, Star a))));
+  Printf.printf "ex1 passed\n";
   (* ex2 *)
   let ca = ('a', 0) and cb = ('b', 0) in
   let a = Character ca and b = Character cb in
@@ -75,6 +80,7 @@ let () =
   assert (Cset.cardinal (first (Union (a, b))) = 2);
   assert (Cset.cardinal (first (Concat (Star a, b))) = 2);
   assert (Cset.cardinal (last (Concat (a, Star b))) = 2);
+  Printf.printf "ex2 passed\n";
   (* ex3 *)
   let ca = ('a', 0) and cb = ('b', 0) in
   let a = Character ca and b = Character cb in
@@ -88,3 +94,4 @@ let () =
   assert (Cset.cardinal (follow cb r2) = 2);
   let r3 = Concat (Star a, b) in
   assert (Cset.cardinal (follow ca r3) = 2);
+  Printf.printf "ex3 passed\n";
