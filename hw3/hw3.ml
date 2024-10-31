@@ -58,6 +58,87 @@ let follow (c: ichar) (r: regexp) : Cset.t =
   in
   follow_rec r
 
+(* define a type for automata *)
+type state = Cset.t (* a state is a set of characters *)
+module Cmap = Map.Make(Char) (* dictionary whose keys are characters *)
+module Smap = Map.Make(Cset) (* dictionary whose keys are states *)
+type autom = {
+  start : state;
+  trans : state Cmap.t Smap.t (* state dictionary -> (character dictionary -> state) *)
+}
+let eof = ('#', -1)
+
+(* visualize an automaton *)
+let fprint_state fmt q =
+Cset.iter (fun (c,i) ->
+if c = '#' then Format.fprintf fmt "# " else Format.fprintf fmt "%c%i " c i) q
+let fprint_transition fmt q c q' =
+  Format.fprintf fmt "\"%a\" -> \"%a\" [label=\"%c\"];@\n"
+  fprint_state q
+  fprint_state q'
+  c
+let fprint_autom fmt a =
+  Format.fprintf fmt "digraph A {@\n";
+  Format.fprintf fmt " @[\"%a\" [ shape = \"rect\"];@\n" fprint_state a.start;
+  Smap.iter (fun q t -> Cmap.iter (fun c q' -> fprint_transition fmt q c q') t)
+  a.trans;
+  Format.fprintf fmt "@]@\n}@."
+let save_autom file a =
+  let ch = open_out file in
+  Format.fprintf (Format.formatter_of_out_channel ch) "%a" fprint_autom a;
+  close_out ch
+
+(* Define a module for sets of characters *)
+module CharSet = Set.Make(Char)
+
+(* Function to extract all characters from the regular expression *)
+let chars (r: regexp) : CharSet.t =
+  let rec chars_rec r =
+    match r with
+    | Epsilon -> CharSet.empty
+    | Character (c, _) -> CharSet.singleton c
+    | Union (r1, r2) -> CharSet.union (chars_rec r1) (chars_rec r2)
+    | Concat (r1, r2) -> CharSet.union (chars_rec r1) (chars_rec r2)
+    | Star r1 -> chars_rec r1
+  in
+  chars_rec r
+
+let next_state (r: regexp) (state: Cset.t) (c: char) : Cset.t = 
+  Cset.fold (fun ci acc ->
+    if fst ci = c then
+      Cset.union acc (follow ci r)
+    else
+      acc
+  ) state Cset.empty
+
+let make_dfa (r: regexp) : autom =
+  let r = Concat (r, Character eof) in
+  let sigma = chars r in  (* The set of characters in the regex *)
+  (* transitions under construction *)
+  let trans = ref Smap.empty in
+  let rec transitions q =
+(* the transitions function constructs all the transitions of the state q,
+if this is the first time q is visited *)
+    if Smap.mem q !trans then
+      ()  (* State q has already been processed *)
+    else begin
+      (* Build the transition map for state q *)
+      let trans_q = CharSet.fold (fun c cmap ->
+        let q' = next_state r q c in
+        if not (Cset.is_empty q') then begin
+          (* transitions q';  Recursively process q' *)
+          Cmap.add c q' cmap  (* Add transition from q to q' on c *)
+        end else
+          cmap
+      ) sigma Cmap.empty in
+      trans := Smap.add q trans_q !trans;  (* Update transitions *)
+      Cmap.iter (fun _ q' -> transitions q') trans_q (* Recursively process all new states *)
+    end
+  in
+  let q0 = first r in
+  transitions q0;
+  { start = q0; trans = !trans }
+
 let () =
   (* ex1 *)
   let a = Character ('a', 0) in
@@ -95,3 +176,12 @@ let () =
   let r3 = Concat (Star a, b) in
   assert (Cset.cardinal (follow ca r3) = 2);
   Printf.printf "ex3 passed\n";
+
+let () = 
+  (* (a|b)*a(a|b) *)
+  let r = Concat (Star (Union (Character ('a', 1), Character ('b', 1))),
+  Concat (Character ('a', 2),
+  Union (Character ('a', 3), Character ('b', 2)))) in
+  let a = make_dfa r in
+  save_autom "autom.dot" a in
+  Printf.printf "ex4 passed\n"
