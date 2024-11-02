@@ -139,6 +139,21 @@ if this is the first time q is visited *)
   transitions q0;
   { start = q0; trans = !trans }
 
+let recognize (a: autom) (s: string) : bool =
+  let rec recognize_rec q s =
+    match s with
+    | [] -> Cset.mem eof q
+    | c :: s' ->
+      try
+        let trans_q = Smap.find q a.trans in
+        try
+          let q' = Cmap.find c trans_q in 
+          recognize_rec q' s'
+        with Not_found -> false
+      with Not_found -> false
+  in
+  recognize_rec a.start (List.init (String.length s) (String.get s))
+
 let () =
   (* ex1 *)
   let a = Character ('a', 0) in
@@ -177,11 +192,45 @@ let () =
   assert (Cset.cardinal (follow ca r3) = 2);
   Printf.printf "ex3 passed\n";
 
-let () = 
+  (* ex4 *)
   (* (a|b)*a(a|b) *)
   let r = Concat (Star (Union (Character ('a', 1), Character ('b', 1))),
   Concat (Character ('a', 2),
   Union (Character ('a', 3), Character ('b', 2)))) in
   let a = make_dfa r in
-  save_autom "autom.dot" a in
-  Printf.printf "ex4 passed\n"
+  save_autom "autom.dot" a;
+  Printf.printf "ex4 passed\n";
+
+  (* ex5 *)
+  assert (recognize a "aa");
+  assert (recognize a "ab");
+  assert (recognize a "abababaab");
+  assert (recognize a "babababab");
+  assert (recognize a (String.make 1000 'b' ^ "ab"));
+  assert (not (recognize a ""));
+  assert (not (recognize a "a"));
+  assert (not (recognize a "b"));
+  assert (not (recognize a "ba"));
+  assert (not (recognize a "aba"));
+  assert (not (recognize a "abababaaba"));
+
+  let r = Star (Union (Star (Character ('a', 1)),
+  Concat (Character ('b', 1),
+  Concat (Star (Character ('a',2)),
+  Character ('b', 2))))) in
+  let a = make_dfa r in
+  save_autom "autom2.dot" a;
+
+  assert (recognize a "");
+  assert (recognize a "bb");
+  assert (recognize a "aaa");
+  assert (recognize a "aaabbaaababaaa");
+  assert (recognize a "bbbbbbbbbbbbbb");
+  assert (recognize a "bbbbabbbbabbbabbb");
+  assert (not (recognize a "b"));
+  assert (not (recognize a "ba"));
+  assert (not (recognize a "ab"));
+  assert (not (recognize a "aaabbaaaaabaaa"));
+  assert (not (recognize a "bbbbbbbbbbbbb"));
+  assert (not (recognize a "bbbbabbbbabbbabbbb"));
+  Printf.printf "ex5 passed\n";
