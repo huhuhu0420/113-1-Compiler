@@ -42,8 +42,10 @@ let rec stmt env = function
       Turtle.pen_down ()
   | Sforward e ->
       Turtle.forward (expr env e)
-  | Sturn e ->
+  | Sturnleft e ->
       Turtle.turn_left (expr env e)
+  | Sturnright e ->
+      Turtle.turn_right (expr env e)
   | Scolor c ->
       Turtle.set_color c
   | Sif (e, s1, s2) ->

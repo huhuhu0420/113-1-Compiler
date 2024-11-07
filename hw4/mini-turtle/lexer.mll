@@ -10,13 +10,39 @@
 
   (* note : remember to call the Lexing.new_line function
 at each carriage return ('\n' character) *)
+  let id_or_kwd = 
+    let h = Hashtbl.create 32 in
+    List.iter (fun (s, tok) -> Hashtbl.add h s tok)
+      [
+        "forward", FORWARD; "penup", PENUP; "pendown", PENDOWN; "color", COLOR;
+        "black", BLACK; "white", WHITE; "red", RED; "green", GREEN; "blue", BLUE;
+        "IF", IF; "ELSE", ELSE; "DEF", DEF; "REPEAT", REPEAT;
+      ];
+    fun s -> try Hashtbl.find h s with Not_found -> IDENT s
+
 
 }
+
+
+let letter = ['a'-'z' 'A'-'Z']
+let digit = ['0'-'9']
+let ident = letter (letter|digit|'_')*
 
 rule token = parse
   | "(*" { comment lexbuf }
   | "//" { single_line_comment lexbuf }
-  | [' ' '\t' '\n']+ { token lexbuf }
+  | '\n' { Lexing.new_line lexbuf; NEWLINE }
+  | [' ' '\t']+ { token lexbuf }
+  | digit+ as n { INT (int_of_string n) }
+  | ident as id { id_or_kwd id }
+  | '+' { ADD }
+  | '-' { SUB }
+  | '*' { MUL }
+  | '/' { DIV }
+  | "(" { LP }
+  | ")" { RP }
+  | "," { COMMA }
+  | ":" { COLON }
   | eof { EOF }
 
 and comment = parse

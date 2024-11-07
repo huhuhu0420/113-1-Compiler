@@ -23,7 +23,8 @@ type stmt =
   | Spenup
   | Spendown
   | Sforward of expr
-  | Sturn    of expr (* turn left *)
+  | Sturnleft    of expr 
+  | Sturnright of expr
   | Scolor   of Turtle.color
   | Sif      of expr * stmt * stmt
   | Srepeat  of expr * stmt
