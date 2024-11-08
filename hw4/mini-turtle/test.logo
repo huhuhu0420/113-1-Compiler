@@ -1,2 +1,10 @@
-forward 100 + 1 * 0
-turnleft 90 
+(**)
+
+def hi(n, r) {
+    repeat n {
+        forward 100
+        turnleft 90
+    }
+}
+
+hi(4, 4)

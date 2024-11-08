@@ -16,6 +16,7 @@ at each carriage return ('\n' character) *)
       [
         "forward", FORWARD; "penup", PENUP; "pendown", PENDOWN; "color", COLOR;
         "black", BLACK; "white", WHITE; "red", RED; "green", GREEN; "blue", BLUE;
+        "turnleft", TURNLEFT; "turnright", TURNRIGHT; "if", IF; "else", ELSE; "def", DEF; "repeat", REPEAT;
         "IF", IF; "ELSE", ELSE; "DEF", DEF; "REPEAT", REPEAT;
       ];
     fun s -> try Hashtbl.find h s with Not_found -> IDENT s
@@ -41,6 +42,8 @@ rule token = parse
   | '/' { DIV }
   | "(" { LP }
   | ")" { RP }
+  | "{" { LSQ }
+  | "}" { RSQ }
   | "," { COMMA }
   | ":" { COLON }
   | eof { EOF }

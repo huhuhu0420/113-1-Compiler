@@ -17,7 +17,7 @@
 %token TURNLEFT TURNRIGHT COLOR BLACK WHITE RED GREEN BLUE
 %token NEWLINE EOF
 %token ADD SUB MUL DIV
-%token LP RP COMMA COLON
+%token LP RP LSQ RSQ COMMA COLON
 
 /* Priorities and associativity of tokens */
 
@@ -36,9 +36,8 @@
 /* Production rules of the grammar */
 
 def:
-| DEF f = IDENT LP x = separated_list(COMMA, IDENT) RP
-  COLON s = stmt
-    { f, x, s }
+| DEF f = IDENT LP x = separated_list(COMMA, IDENT) RP LSQ NEWLINE s = stmts RSQ
+    { { name = f; formals = x; body = Sblock s } }
 
 stmts:
 | stmt NEWLINE stmts
@@ -63,6 +62,8 @@ stmt:
     { Sturnright e }
 | COLOR c = color
     { Scolor c }
+| REPEAT e = expr LSQ s = stmts RSQ
+    { Srepeat (e, Sblock s) }
 | IF e = expr COLON s1 = stmt ELSE COLON s2 = stmt
     { Sif (e, s1, s2) }
 | IF e = expr COLON s = stmt
@@ -101,8 +102,8 @@ color:
     { Turtle.blue }
 
 prog:
-  stmts EOF
-    { { defs = []; main = Sblock $1 } (* To be modified *) }
+| NEWLINE? dl = list(def) b = stmts NEWLINE? EOF
+    { { defs = dl; main = Sblock b } (* To be modified *) }
 ;
 
 
