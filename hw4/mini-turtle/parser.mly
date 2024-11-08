@@ -10,7 +10,6 @@
 
 // if else def repeat penup pendown forward turnleft
 // turnright color black white red green
-%token <Ast.binop> BINOP
 %token <string> IDENT
 %token <int> INT
 %token IF ELSE DEF REPEAT PENUP PENDOWN FORWARD 
@@ -21,9 +20,9 @@
 
 /* Priorities and associativity of tokens */
 
-%left BINOP
 %left ADD SUB
 %left MUL DIV 
+%nonassoc unary_minus
 
 /* Axiom of the grammar */
 %start prog
@@ -78,6 +77,8 @@ expr:
     { Econst $1 }
 | IDENT
     { Evar $1 }
+| SUB e = expr %prec unary_minus
+    { Eunop (Neg, e) }
 | e1 = expr ADD e2 = expr
     { Ebinop (Add, e1, e2) }
 | e1 = expr SUB e2 = expr
@@ -103,7 +104,7 @@ color:
 
 prog:
 | NEWLINE? dl = list(def) b = stmts NEWLINE? EOF
-    { { defs = dl; main = Sblock b } (* To be modified *) }
+    { { defs = dl; main = Sblock b } }
 ;
 
 

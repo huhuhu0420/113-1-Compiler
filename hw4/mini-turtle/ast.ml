@@ -12,10 +12,13 @@
 
 type binop = Add | Sub | Mul | Div
 
+type unop = Neg
+
 type expr =
   | Econst of int
   | Evar   of string
   | Ebinop of binop * expr * expr
+  | Eunop  of unop * expr
 
 (* instructions *)
 

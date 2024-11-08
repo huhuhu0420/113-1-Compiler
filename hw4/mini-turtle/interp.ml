@@ -29,6 +29,7 @@ let rec expr env = function
   | Evar x when Hashtbl.mem globals x -> Hashtbl.find globals x
   | Evar x -> unbound_var x
   | Ebinop (op, e1, e2) -> binop op (expr env e1) (expr env e2)
+  | Eunop (Neg, e) -> - (expr env e)
 
 (* procedure table *)
 let procs = Hashtbl.create 17

@@ -1,8 +1,7 @@
-(**)
 
 def hi(n, r) {
     repeat n {
-        forward 100
+        forward -100
         turnleft 90
     }
 }
