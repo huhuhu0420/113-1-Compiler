@@ -14,9 +14,9 @@
 %token <int> INT
 %token IF ELSE DEF REPEAT PENUP PENDOWN FORWARD 
 %token TURNLEFT TURNRIGHT COLOR BLACK WHITE RED GREEN BLUE
-%token NEWLINE EOF
+%token EOF
 %token ADD SUB MUL DIV
-%token LP RP LSQ RSQ COMMA COLON
+%token LP RP LCURL RCURL COMMA COLON
 
 /* Priorities and associativity of tokens */
 
@@ -29,24 +29,52 @@
 
 /* Type of values ​​returned by the parser */
 %type <Ast.program> prog
+%type <Ast.def list> defs
+%type <Ast.def> def
+%type <Ast.stmt list> stmts
+%type <Ast.stmt> stmt
+%type <Ast.expr> expr
+%type <Turtle.color> color
+%type <string list> params
+%type <Ast.expr list> args
 
 %%
 
 /* Production rules of the grammar */
 
-def:
-| DEF f = IDENT LP x = separated_list(COMMA, IDENT) RP LSQ NEWLINE s = stmts RSQ
-    { { name = f; formals = x; body = Sblock s } }
-
-stmts:
-| stmt NEWLINE stmts
-    { $1 :: $3 }
-| stmt NEWLINE
-    { [$1] }
-| NEWLINE stmts
-    { $2 }
+params:
 | /* empty */
     { [] }
+| IDENT
+    { [$1] }
+| IDENT COMMA params
+    { $1 :: $3 }
+
+args:
+| /* empty */
+    { [] }
+| expr
+    { [$1] }
+| expr COMMA args
+    { $1 :: $3 }
+
+defs:
+| /* empty */
+    { [] } 
+| def defs
+    { $1 :: $2 }
+
+def:
+| DEF f = IDENT LP x = params RP LCURL s = stmts RCURL
+    { { name = f; formals = x; body = Sblock s } }
+| DEF f = IDENT LP x = params RP s = stmt
+    { { name = f; formals = x; body = s } }
+
+stmts:
+| /* empty */
+    { [] }
+| stmt stmts 
+    { $1 :: $2 }
 
 stmt:
 | PENUP  
@@ -61,15 +89,17 @@ stmt:
     { Sturnright e }
 | COLOR c = color
     { Scolor c }
-| REPEAT e = expr LSQ s = stmts RSQ
+| REPEAT e = expr LCURL s = stmts RCURL
     { Srepeat (e, Sblock s) }
-| IF e = expr COLON s1 = stmt ELSE COLON s2 = stmt
-    { Sif (e, s1, s2) }
-| IF e = expr COLON s = stmt
-    { Sif (e, s, Sblock []) }
+| IF e = expr LCURL s1 = stmts RCURL ELSE LCURL s2 = stmts RCURL
+    { Sif (e, Sblock s1, Sblock s2) }
+| IF e = expr LCURL s1 = stmts RCURL ELSE s2 = stmt 
+    { Sif (e, Sblock s1, s2) }
+| IF e = expr LCURL s = stmts RCURL
+    { Sif (e, Sblock s, Sblock []) }
 | REPEAT e = expr COLON s = stmt
     { Srepeat (e, s) }
-| id = IDENT LP e = separated_list(COMMA, expr) RP
+| id = IDENT LP e = args RP
     { Scall (id, e) }
 
 expr:
@@ -103,7 +133,7 @@ color:
     { Turtle.blue }
 
 prog:
-| NEWLINE? dl = list(def) b = stmts NEWLINE? EOF
+| dl = defs b = stmts EOF
     { { defs = dl; main = Sblock b } }
 ;
 

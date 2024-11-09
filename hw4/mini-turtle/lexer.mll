@@ -32,20 +32,20 @@ let ident = letter (letter|digit|'_')*
 rule token = parse
   | "(*" { comment lexbuf }
   | "//" { single_line_comment lexbuf }
-  | '\n' { Lexing.new_line lexbuf; NEWLINE }
-  | [' ' '\t']+ { token lexbuf }
+  | '\n' { new_line lexbuf; token lexbuf }
+  | [' ' '\t' '\r'] { token lexbuf }
   | digit+ as n { INT (int_of_string n) }
   | ident as id { id_or_kwd id }
   | '+' { ADD }
   | '-' { SUB }
   | '*' { MUL }
   | '/' { DIV }
-  | "(" { LP }
-  | ")" { RP }
-  | "{" { LSQ }
-  | "}" { RSQ }
-  | "," { COMMA }
-  | ":" { COLON }
+  | '(' { LP }
+  | ')' { RP }
+  | '{' { LCURL }
+  | '}' { RCURL }
+  | ',' { COMMA }
+  | ':' { COLON }
   | eof { EOF }
 
 and comment = parse

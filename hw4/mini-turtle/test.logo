@@ -1,9 +1,17 @@
+(*  fdsa
+fds
+ *)
 
 def hi(n, r) {
+    if r {
+        color red
+    }
     repeat n {
         forward -100
+        forward 50
         turnleft 90
     }
 }
 
 hi(4, 4)
+
