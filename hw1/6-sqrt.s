@@ -32,7 +32,7 @@ end:
 main:
     pushq %rbp
     movq %rsp, %rbp
-    subq $8, %rsp
+    subq $16, %rsp
     movq $0, -8(%rbp) # n = 0
 
 loop_main:
@@ -52,6 +52,6 @@ loop_main:
 
 end_main:
     movq $0, %rax
-    addq $8, %rsp
+    addq $16, %rsp
     popq %rbp
     ret 

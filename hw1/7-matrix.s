@@ -107,12 +107,12 @@ main:
     movl    $32767, %esi          # c = (1 << 15) - 1 = 32767
     call    f                     # Call f(0, 32767)
 
-    subq    $8, %rsp              # Align stack to 16 bytes before calling printf
+    subq    $16, %rsp              # Align stack to 16 bytes before calling printf
     movl    %eax, %esi            # Move result to %esi (second argument)
     movq    $output, %rdi         # Load address of output format string
     xorq    %rax, %rax            # Clear %rax
     call    printf                # Call printf
-    addq    $8, %rsp              # Restore stack pointer
+    addq    $16, %rsp              # Restore stack pointer
 
     movl    $0, %eax              # Return 0 from main
     popq    %rbp                  # Restore base pointer

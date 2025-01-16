@@ -10,12 +10,12 @@ first:
     pushq %rbp
     movq %rsp, %rbp
 
-    pushq $3
-    popq %rax
-    imul %rax, %rax
+    movq $3, %rax         # x = 3
+    imul %rax, %rax       # x * x = 3 * 3
 
-    movq $output, %rdi
-    movq %rax, %rsi
+    movq $output, %rdi    # First argument (format string)
+    movq %rax, %rsi       # Second argument (value to print)
+    movb $0, %al          # No floating-point arguments
     call printf
 
     xor %rax, %rax
@@ -26,7 +26,7 @@ second:
     # print (let x = 3 in (let y = x + x in x * y) + (let z = x + 3 in z / z))
     pushq %rbp
     movq %rsp, %rbp
-    subq $24, %rsp  # Adjust stack to keep it 16-byte aligned
+    subq $32, %rsp  # Adjust stack to keep it 16-byte aligned
 
     # x = 3
     movq $3, -8(%rbp)
@@ -56,7 +56,7 @@ second:
     movb $0, %al  # No SSE registers used
     call printf
 
-    addq $24, %rsp
+    addq $32, %rsp
     popq %rbp
     ret
 
